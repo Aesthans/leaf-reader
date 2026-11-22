@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>一页 · 电子书阅读器</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="vendor/pdfjs/web/pdf_viewer.css">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="reader.mjs"></script>
+</head>
+<body>
+  <aside class="sidebar" id="sidebar" aria-label="书架与阅读工具">
+    <header class="brand"><img class="brand-mark" src="assets/icon.svg" alt=""><div>一页<small>本地电子书阅读器</small></div></header>
+    <button class="primary import" id="import" type="button">＋ 导入书籍</button>
+    <input id="file" type="file" accept=".epub,.txt,.mobi,.azw3,.pdf" hidden>
+    <div class="tabs">
+      <button id="shelf-tab" type="button" aria-pressed="true">书架</button>
+      <button id="toc-tab" type="button" aria-pressed="false">目录</button>
+      <button id="search-tab" type="button" aria-pressed="false">搜索</button>
+      <button id="notes-tab" type="button" aria-pressed="false">笔记</button>
+    </div>
+    <div class="shelf-tools" id="shelf-tools">
+      <select id="shelf-filter" aria-label="书架分区"></select>
+      <button id="manage-shelf" type="button">管理</button>
+    </div>
+    <form class="shelf-tools" id="search-form" hidden>
+      <input id="search-query" type="search" maxlength="150" aria-label="搜索本书全文" placeholder="搜索本书全文">
+      <button id="search-submit" type="submit">查找</button>
+    </form>
+    <div class="sidebar-scroll">
+      <div id="shelf"></div>
+      <nav id="toc" aria-label="章节目录" hidden></nav>
+      <section id="search-panel" aria-label="搜索结果" hidden>
+        <p class="list-note" id="search-status" role="status"></p>
+        <div id="search-results"></div>
+      </section>
+      <section id="notes-panel" aria-label="书签、高亮与批注" hidden>
+        <button id="add-bookmark" class="entry bookmark-action" type="button">＋ 添加当前位置书签</button>
+        <div id="mark-list"></div>
+      </section>
+    </div>
+    <div class="sidebar-note">本地书库 · 离线阅读</div>
+  </aside>
+  <main class="workspace">
+    <header class="toolbar">
+      <button id="toggle-sidebar" type="button" aria-controls="sidebar" aria-expanded="true" title="显示或隐藏书架与目录" aria-label="显示或隐藏书架与目录">☰</button>
+      <div class="book-heading">
+        <strong id="book-title">阅读室</strong>
+        <span id="book-author" hidden></span>
+      </div>
+      <div class="settings">
+        <select id="flow" aria-label="阅读模式">
+          <option value="paginated">横向分页</option>
+          <option value="scrolled">纵向滚动</option>
+        </select>
+        <div class="font-control" id="font-control" aria-label="字号">
+          <button id="smaller" type="button" aria-label="缩小字号" title="缩小字号">A−</button>
+          <output id="font-size">20</output>
+          <button id="larger" type="button" aria-label="放大字号" title="放大字号">A＋</button>
+        </div>
+        <div class="pdf-tools" id="pdf-tools" hidden>
+          <div class="font-control" aria-label="PDF 缩放">
+            <button id="pdf-zoom-out" type="button" aria-label="缩小 PDF">−</button>
+            <output id="pdf-zoom-percent">100%</output>
+            <button id="pdf-zoom-in" type="button" aria-label="放大 PDF">＋</button>
+          </div>
+          <select id="pdf-zoom" aria-label="PDF 适应方式">
+            <option value="page-width">适合宽度</option>
+            <option value="page-fit">适合整页</option>
+            <option value="custom" disabled>自定义缩放</option>
+          </select>
+        </div>
+        <select id="theme" aria-label="阅读主题">
+          <option value="paper">白纸</option>
+          <option value="sepia">暖纸</option>
+          <option value="dark">夜间</option>
+        </select>
+        <button id="open-desktop-settings" type="button" aria-label="阅读设置" title="阅读设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m10 3-.6 2.4-2 .9L5 5.5 3 9l1.8 1.7v2.6L3 15l2 3.5 2.4-.8 2 .9.6 2.4h4l.6-2.4 2-.9 2.4.8 2-3.5-1.8-1.7v-2.6L21 9l-2-3.5-2.4.8-2-.9L14 3z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <div class="reading-area" id="reading-area">
+      <section class="empty" id="empty">
+        <svg class="book-art" viewBox="0 0 96 84" fill="none" aria-hidden="true">
+          <path d="M48 24C36 13 21 12 9 16v45c16-3 28 0 39 10 11-10 23-13 39-10V16c-12-4-27-3-39 8Z" fill="currentColor" fill-opacity=".08" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M48 24v47M20 29c7-.5 13 1 19 5M20 39c7-.5 13 1 19 5M20 49c7-.5 13 1 19 5M76 29c-7-.5-13 1-19 5M76 39c-7-.5-13 1-19 5M76 49c-7-.5-13 1-19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h1>翻开一本书</h1>
+        <p>从电脑选择一本书，或将文件拖到这里。</p>
+        <button class="primary" id="empty-import" type="button">选择书籍</button>
+        <p class="formats">EPUB · TXT · MOBI · AZW3 · PDF</p>
+      </section>
+      <span class="edge-cue edge-left" aria-hidden="true">‹</span>
+      <span class="edge-cue edge-right" aria-hidden="true">›</span>
+      <div id="selection-tools" class="selection-tools" role="group" aria-label="选中文字的操作" hidden>
+        <div class="mark-options" id="selection-mark-options"></div>
+        <div class="selection-actions">
+          <button id="highlight-selection" type="button"><span id="selection-mark-label">标记</span></button>
+          <button id="note-selection" type="button">写批注</button>
+          <button id="lookup-selection" type="button">查词</button>
+        </div>
+      </div>
+      <div class="notice" id="notice" role="status" hidden></div>
+      <div class="drop-overlay" id="drop-overlay" aria-hidden="true" hidden>松开以导入书籍</div>
+    </div>
+    <footer class="statusbar">
+      <span id="chapter">等待打开书籍</span>
+      <div class="page-controls">
+        <button id="previous" type="button" disabled>← 上一页</button>
+        <output id="progress" aria-label="全书阅读进度">—</output>
+        <form id="pdf-page-form" class="pdf-page-form" hidden>
+          <input id="pdf-page" type="text" inputmode="numeric" aria-label="跳转到 PDF 页码" title="输入页码并按回车">
+          <span aria-hidden="true">/</span>
+          <output id="pdf-total" aria-label="PDF 总页数"></output>
+        </form>
+        <button id="next" type="button" disabled>下一页 →</button>
+      </div>
+    </footer>
+  </main>
+  <dialog class="library-dialog" id="library-dialog" aria-labelledby="library-title">
+    <header class="dialog-header">
+      <div><h2 id="library-title">管理书架</h2><p>按分区查看书籍，勾选后可移动或移除。</p></div>
+      <button id="close-library" type="button" aria-label="关闭书架管理">✕</button>
+    </header>
+    <div class="library-tools">
+      <select id="library-filter" aria-label="查看分区"></select>
+      <button id="new-group" type="button">＋ 新建分区</button>
+      <button id="rename-group" type="button" disabled>重命名</button>
+      <button id="delete-group" type="button" disabled>删除分区</button>
+    </div>
+    <label class="select-all"><input id="select-all" type="checkbox"> 全选当前列表</label>
+    <div class="library-list" id="library-list"></div>
+    <p class="dialog-notice" id="library-notice" role="status" hidden></p>
+    <footer class="library-actions">
+      <span id="selection-count" aria-live="polite">已选 0 本</span>
+      <select id="move-destination" aria-label="目标分区"><option value="all">移动到…</option></select>
+      <button id="move-books" type="button" disabled>移动</button>
+      <button class="danger" id="remove-books" type="button" disabled>移除</button>
+    </footer>
+  </dialog>
+  <dialog class="action-dialog" id="action-dialog" aria-labelledby="action-title">
+    <form id="action-form">
+      <h2 id="action-title"></h2>
+      <p id="action-description"></p>
+      <label id="group-field">分区名称<input id="group-name" maxlength="24" autocomplete="off"></label>
+      <p class="dialog-notice" id="action-notice" role="status" hidden></p>
+      <div class="action-buttons">
+        <button id="cancel-action" type="button">取消</button>
+        <button class="primary" id="confirm-action" type="submit">确认</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog class="action-dialog" id="note-dialog" aria-labelledby="note-title">
+    <form id="note-form">
+      <h2 id="note-title">阅读批注</h2>
+      <blockquote id="note-quote"></blockquote>
+      <label class="note-field">批注<textarea id="note-text" rows="5" maxlength="2000"></textarea></label>
+      <p class="dialog-notice" id="note-notice" role="status" hidden></p>
+      <div class="action-buttons">
+        <button id="cancel-note" type="button">取消</button>
+        <button class="primary" id="save-note" type="submit">保存</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog class="action-dialog" id="mark-style-dialog" aria-labelledby="mark-style-title">
+    <h2 id="mark-style-title">编辑标记样式</h2>
+    <p id="mark-style-preview"></p>
+    <div class="mark-options" id="edit-mark-options"></div>
+    <p class="dialog-notice" id="mark-style-notice" role="status" hidden></p>
+    <div class="action-buttons">
+      <button id="cancel-mark-style" type="button">取消</button>
+      <button class="primary" id="save-mark-style" type="submit">保存</button>
+    </div>
+  </dialog>
+  <dialog class="action-dialog" id="lookup-dialog" aria-labelledby="lookup-title">
+    <header class="dialog-header">
+      <h2 id="lookup-title">查词</h2>
+      <button id="close-lookup" type="button" aria-label="关闭查词">✕</button>
+    </header>
+    <div id="lookup-results" aria-live="polite"></div>
+    <button id="online-lookup" type="button" hidden>重试</button>
+    <a id="lookup-web-search" hidden>百度 / Bing 搜索</a>
+    <footer class="lookup-footer">
+      <small>词典和网页搜索仅发送所选词语或拆分后的字词。</small>
+    </footer>
+  </dialog>
+</body>
+</html>
