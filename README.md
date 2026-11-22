@@ -23,9 +23,9 @@ Android 支持 Android 10 及以上，阅读内核使用系统 WebView。PDF 需
 
 | Android 书架 | Android 阅读 |
 | --- | --- |
-| <img src="docs/screenshots/mobile-shelf.png" alt="Android 本地书架" width="280"> | <img src="docs/screenshots/mobile-reading.png" alt="Android 阅读正文" width="280"> |
+| <img src="docs/screenshots/mobile-shelf.jpg" alt="Android 实机本地书架" width="280"> | <img src="docs/screenshots/mobile-reading.jpg" alt="Android 实机阅读与工具栏" width="280"> |
 
-截图使用项目自编示例文本。
+桌面截图使用项目自编示例文本，Android 截图由使用者在手机上实际拍摄提供。
 
 ## 功能与使用
 

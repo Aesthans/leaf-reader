@@ -16,4 +16,4 @@ PDF.js 版本由 `package-lock.json` 固定，Android 使用同版本的 legacy 
 
 手机端在线查词会调用萌典、中文维基百科或维基词典，查询结果在界面中标注来源。萌典释义保留教育部《重編國語辭典修訂本》的原文与 CC BY-ND 3.0 TW 标注，维基内容标注 CC BY-SA。源码和安装包通过在线接口请求这些内容。[萌典](https://www.moedict.tw/)、[教育部辞典授权说明](https://language.moe.gov.tw/001/Upload/Files/site_content/M0001/respub/index.html)、[维基百科](https://zh.wikipedia.org/)、[维基词典](https://en.wiktionary.org/)
 
-README 中的截图使用项目自编示例文本。
+README 中的桌面截图使用项目自编示例文本，Android 实机截图由使用者提供。
